@@ -1,13 +1,13 @@
 #!/bin/python
 
+from xdg.BaseDirectory import xdg_config_home
 from enum import Enum
-import os
 import subprocess
 import platform
 import distro
 import json
 import re
-from xdg.BaseDirectory import xdg_config_home
+import os
 
 colors = [
     # Regular colors.
@@ -78,6 +78,7 @@ def loadSettings():
 def printn(string):
     print(string, end="")
 
+# Prints string at a specified position.
 def printAt(string, *position):
     if len(position) == 1:
         x = position[0][0]
@@ -87,7 +88,8 @@ def printAt(string, *position):
         y = position[1]
     printn("\x1b7\x1b[%d;%df%s\x1b8" % (y+1, x+1, string))
 
-def printLines(lines, colorIndex, offsetX, offsetY, alignMode, alignSpace = 3):
+# Prints the data lines.
+def printLines(lines, colorIndex, offsetX, offsetY, alignMode, alignSpace):
     longestName = 0
     dataPosition = 0
 
@@ -102,16 +104,19 @@ def printLines(lines, colorIndex, offsetX, offsetY, alignMode, alignSpace = 3):
 
     y = 0
     x = offsetX
+    # Prints the lines and formats them accordingly.
     for line in lines:
         if alignMode is AlignMode.spaces:
             printAt(line[1], x + dataPosition, y+offsetY)
         elif alignMode is AlignMode.center:
             line[0] = ' ' * (longestName - len(line[0])) + line[0]
+
         printAt(colored(line[0], colorIndex, [0]), x, y+offsetY)
         if alignMode is AlignMode.center:
             printAt(' ~ ' + line[1], x+len(line[0]), y+offsetY)
         y += 1
 
+# Sets the cursor position.
 def setCursorPosition(*position, newLine=False):
     if len(position) == 1:
         x = position[0][0]
@@ -125,16 +130,19 @@ def setCursorPosition(*position, newLine=False):
     else:
         printn(string)
 
+# Runs the specified terminal command.
+def termRun(command, arguments):
+    output = subprocess.run([command, arguments], text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    return output.stdout
+
+# Prints ascii image.
 def printAscii(position, asciiImage):
     setCursorPosition(position)
     lines = asciiImage.split('\n')
     for line in lines:
         print(line)
 
-def termRun(command, arguments):
-    output = subprocess.run([command, arguments], text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    return output.stdout
-
+# Gets the operating system.
 def getOS(architecture=False, removeLinux=False):
     os = distro.linux_distribution()[0]
     if removeLinux:
@@ -144,17 +152,20 @@ def getOS(architecture=False, removeLinux=False):
         os += ' ' + platform.machine()
     return os
 
+# Gets the kernel.
 def getKernel(fullName=True):
     kernel = platform.release()
     if not fullName:
         kernel = kernel.split('-')[0]
     return kernel
 
+# Gets the window manager.
 def getWM():
     string = termRun('wmctrl', '-m')
     string = string[6::].split('\n')[0]
     return string
 
+# Gets the number of packages.
 def getPackages(displayPackageManager=False):
     try:
         packages = termRun('pacman', '-Qq')
@@ -165,6 +176,7 @@ def getPackages(displayPackageManager=False):
     except:
         return None
 
+# Gets the machine uptime.
 def getUptime():
     with open('/proc/uptime', 'r') as f:
         uptime_seconds = float(f.readline().split()[0])
@@ -177,8 +189,9 @@ def getUptime():
             string += str(hours) + 'h '
         if minutes != 0 or hours == 0:
             string += str(minutes) + 'm'
-        return string
+    return string
 
+# Gets the data for the specified data type.
 def getData(type, settings):
     data = {
         Type.os: getOS(settings['displayArchitecture'], settings['removeLinux']),
@@ -205,6 +218,7 @@ def getData(type, settings):
 
     return [name, data]
 
+# Gets the size of the specified ascii image.
 def asciiSize(asciiImage):
     x = 0
     split = asciiImage.split('\n')
@@ -213,6 +227,7 @@ def asciiSize(asciiImage):
             x = len(line)
     return [x, len(split)]
 
+# Trims the specified ascii image of empty lines and trailing whitespaces.
 def trimAscii(asciiImage):
     lines = asciiImage.split('\n')
     string = ''
@@ -223,6 +238,7 @@ def trimAscii(asciiImage):
     string = string[:-1] # Removes last newline.
     return string
 
+# Loads the ascii image at the specified path.
 def loadAsciiImage(path):
     file = open(path, 'r')
     asciiImage = trimAscii(file.read())
