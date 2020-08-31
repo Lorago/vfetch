@@ -9,7 +9,7 @@
 * [python](https://www.python.org/) - For obvious reasons.
 * [distro](https://github.com/nir0s/distro) - Python library for getting the machine's Linux distribution.
 * [pyxdg](https://freedesktop.org/wiki/Software/pyxdg/) - Python library used to get the $XDG_CONFIG_HOME file path.
-* [wmctrl](http://tripie.sweb.cz/utils/wmctrl/) - Linux command line tool for X used to get the window manager.
+* [wmctrl-python3](https://pypi.org/project/wmctrl-python3/) - Python library for the wmctrl tool for X used to get the window manager.
 
 ## Installation
 Download the repository and add a symbolic link to the `vfetch.py` script in your `/usr/bin/` directory:
