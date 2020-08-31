@@ -8,6 +8,7 @@ import distro
 import json
 import re
 import os
+import wmctrl
 
 colors = [
     # Regular colors.
@@ -161,9 +162,14 @@ def getKernel(fullName=True):
 
 # Gets the window manager.
 def getWM():
-    string = termRun('wmctrl', '-m')
-    string = string[6::].split('\n')[0]
-    return string
+    try:
+        return wmctrl.os.environ.get('DESKTOP_SESSION')
+    except:
+        pass
+    try:
+        return wmctrl.os.environ.get('XDG_SESSION_DESKTOP')
+    except:
+        return None
 
 # Gets the number of packages.
 def getPackages(displayPackageManager=False):
