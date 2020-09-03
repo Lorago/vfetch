@@ -24,7 +24,7 @@ You can then run the script with a simple
 ## Configuration
 The default configuration is located in the same folder as the `vfetch.py` file, and is called `vfetch.conf`. This file should not be removed, moved, or edited.
 To configure the script, make a copy of the configuration to `$XDG_CONFIG_HOME/vfetch/vfetch.conf`, which will usually be `~/.config/vfetch/vfetch.conf`.
-If the script does not find a file in this directry it will use the default configuration file. By default the vfetch output will look similar to this:
+If the script does not find a file in this directory it will use the default configuration file. By default the vfetch output will look similar to this:
 
 <p align="center"><img src="https://imgur.com/MphO1Cq.png"></p>
 
