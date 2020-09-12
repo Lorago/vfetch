@@ -15,7 +15,7 @@
 Download the repository and add a symbolic link to the `vfetch.py` script in your `/usr/bin/` directory:
 
     $ git clone https://github.com/Lorago/vfetch.git
-    $ sudo ln -s vfetch/vfetch.py /usr/bin/vfetch
+    $ sudo ln -s /path/to/vfetch/vfetch.py /usr/bin/vfetch
 
 You can then run the script with a simple
 
