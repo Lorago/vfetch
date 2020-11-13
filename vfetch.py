@@ -1,4 +1,4 @@
-#!/bin/python
+#!/usr/bin/env python3
 
 from xdg.BaseDirectory import xdg_config_home
 from enum import Enum
