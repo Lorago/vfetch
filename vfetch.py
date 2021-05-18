@@ -41,6 +41,8 @@ decorations = [
     "\u001b[7m"  # Reversed.
 ]
 
+batteryPath = '/sys/class/power_supply/BAT0/'
+
 # Creates a copy of the specified string with color and decorations added.
 def colored(string, colorIndex, decorationIndices=[]):
     newString = colors[colorIndex]
@@ -137,8 +139,6 @@ def setCursorPosition(*position, newLine=False):
 
 # Runs the specified terminal command.
 def termRun(command, arguments):
-    # output = subprocess.run([command, arguments], text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    #Their is also a method popen().read() of os library that do exactly the same thing
     output = os.popen("{} {}".format(command , arguments)).read()
     return output
 
@@ -211,10 +211,10 @@ def getData(type, settings):
         Type.wm: getWM(),
         Type.packages: getPackages(settings['displayPackageManager']),
         Type.uptime: getUptime(),
-        Type.terminal: termRun("echo" , "$TERM"), #getting current activate terminal
-        Type.shell: getShell(),#get default terminal
-        Type.battery: getBattery(),#get current battery status
-        Type.usage: getCurrentBatteryConsumption() #get current battery usage in mW
+        Type.terminal: getTerminal(),
+        Type.shell: getShell(),
+        Type.battery: getBattery(),
+        Type.usage: getBatteryConsumption()
     }.get(type, None)
 
     if data is None:
@@ -226,10 +226,10 @@ def getData(type, settings):
         Type.wm: [ 'WM', '缾' ],
         Type.packages: [ 'Packages', '' ],
         Type.uptime: [ 'Uptime', '' ],
-        Type.terminal: ['Terminal' , ''],
-        Type.shell: ['Shell' , ''],
-        Type.battery: ['Battery' , ''],
-        Type.usage: ['Usage' , '']
+        Type.terminal: ['Terminal' , ''],
+        Type.shell: ['Shell' , ''],
+        Type.battery: ['Battery' , ''],
+        Type.usage: ['Usage' , '']
     }.get(type, None)[int(settings['iconMode'])]
 
     if settings['lowercase']:
@@ -265,29 +265,42 @@ def loadAsciiImage(path):
     file.close()
     return asciiImage
 
-
-#get Terminal
+# Gets the current shell.
 def getShell():
     res = termRun("echo" , "$SHELL")
     resp = re.search(r"/.+/(.+)" , res)
     return resp.group(1)
 
-#Get battery data
-BattPath = "/sys/class/power_supply/BAT0/"
+# Gets the current terminal.
+def getTerminal():
+    return termRun("echo" , "$TERM")
 
+# Gets the battery data.
 def getBattery():
-    fullBatteryCapacityPath , currentBatteryPath = [BattPath+"energy_full" , BattPath+"energy_now"]
-    with open(fullBatteryCapacityPath , "r") as f:
-        fullBatteryCapacity = int(f.read())
-    with open(currentBatteryPath , "r") as f:
-        currentBattery = int(f.read())
-    batteryPercent = (currentBattery/fullBatteryCapacity)*100
-    return f"{int(batteryPercent)}%"
+    try:
+        batteryPercentagePath = batteryPath+"capacity"
+        with open(batteryPercentagePath, "r") as f:
+            batteryPercentage = int(f.read())
+        return f'{batteryPercentage}%'
+    except:
+        return None
 
-def getCurrentBatteryConsumption():
-    with open(BattPath+"power_now") as f:
-        currentPowerUsage = int(f.read())
-    return f"{currentPowerUsage/1000000:.2f}mW"
+# Gets the current battery consumption in mW.
+def getBatteryConsumption():
+    try:
+        with open(batteryPath+"power_now") as f:
+            currentPowerUsage = int(f.read())
+        return f"{currentPowerUsage/1000000:.0f}mW"
+    except:
+        pass
+    try:
+        with open(batteryPath+"current_now") as f:
+            currentCurrent = int(f.read())
+        with open(batteryPath+"voltage_now") as f:
+            currentVoltage = int(f.read())
+        return f"{currentCurrent*currentVoltage/1000000000:.0f}mW"
+    except:
+        return None
 
 settings = loadSettings()
 
