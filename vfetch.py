@@ -56,6 +56,10 @@ class Type(str, Enum):
     wm = 'wm'
     packages = 'packages'
     uptime = 'uptime'
+    shell = 'shell'
+    terminal = 'terminal'
+    battery = 'battery'
+    usage =  'usage'
 
 # Enum for the different align modes.
 class AlignMode(str, Enum):
@@ -133,8 +137,10 @@ def setCursorPosition(*position, newLine=False):
 
 # Runs the specified terminal command.
 def termRun(command, arguments):
-    output = subprocess.run([command, arguments], text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    return output.stdout
+    # output = subprocess.run([command, arguments], text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    #Their is also a method popen().read() of os library that do exactly the same thing
+    output = os.popen("{} {}".format(command , arguments)).read()
+    return output
 
 # Prints ascii image.
 def printAscii(position, asciiImage):
@@ -204,7 +210,11 @@ def getData(type, settings):
         Type.kernel: getKernel(settings['kernelFullName']),
         Type.wm: getWM(),
         Type.packages: getPackages(settings['displayPackageManager']),
-        Type.uptime: getUptime()
+        Type.uptime: getUptime(),
+        Type.terminal: termRun("echo" , "$TERM"), #getting current activate terminal
+        Type.shell: getShell(),#get default terminal
+        Type.battery: getBattery(),#get current battery status
+        Type.usage: getCurrentBatteryConsumption() #get current battery usage in mW
     }.get(type, None)
 
     if data is None:
@@ -215,7 +225,11 @@ def getData(type, settings):
         Type.kernel: [ 'Kernel', '' ],
         Type.wm: [ 'WM', '缾' ],
         Type.packages: [ 'Packages', '' ],
-        Type.uptime: [ 'Uptime', '' ]
+        Type.uptime: [ 'Uptime', '' ],
+        Type.terminal: ['Terminal' , ''],
+        Type.shell: ['Shell' , ''],
+        Type.battery: ['Battery' , ''],
+        Type.usage: ['Usage' , '']
     }.get(type, None)[int(settings['iconMode'])]
 
     if settings['lowercase']:
@@ -250,6 +264,30 @@ def loadAsciiImage(path):
     asciiImage = trimAscii(file.read())
     file.close()
     return asciiImage
+
+
+#get Terminal
+def getShell():
+    res = termRun("echo" , "$SHELL")
+    resp = re.search(r"/.+/(.+)" , res)
+    return resp.group(1)
+
+#Get battery data
+BattPath = "/sys/class/power_supply/BAT0/"
+
+def getBattery():
+    fullBatteryCapacityPath , currentBatteryPath = [BattPath+"energy_full" , BattPath+"energy_now"]
+    with open(fullBatteryCapacityPath , "r") as f:
+        fullBatteryCapacity = int(f.read())
+    with open(currentBatteryPath , "r") as f:
+        currentBattery = int(f.read())
+    batteryPercent = (currentBattery/fullBatteryCapacity)*100
+    return f"{int(batteryPercent)}%"
+
+def getCurrentBatteryConsumption():
+    with open(BattPath+"power_now") as f:
+        currentPowerUsage = int(f.read())
+    return f"{currentPowerUsage/1000000:.2f}mW"
 
 settings = loadSettings()
 
