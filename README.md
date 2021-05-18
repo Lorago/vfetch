@@ -77,7 +77,7 @@ packages. Acceptable values are `true` and `false`.
 
 #### data
 The `data` option sets what data to display and in what order. Values are separated by commas. Acceptable values
-are `os`, `kernel`, `uptime`, `packages`, and `wm`.
+are `os`, `kernel`, `uptime`, `packages`, `wm`, `shell`, `terminal`, `battery`, and `usage`.
 
 #### offset
 The `offset` option sets the offset of the data from the edge or the ascii image (in both the x- and y-directions).
